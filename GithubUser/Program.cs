@@ -249,7 +249,9 @@ class Program
                     }
                     else
                     {
-                        Console.WriteLine("Error retrieving data from Github API.");
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("\n Error retrieving data from Github API.");
+                        Console.ForegroundColor = ConsoleColor.White;
                     }
 
 
