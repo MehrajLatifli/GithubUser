@@ -1,7 +1,9 @@
 ﻿
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
@@ -52,40 +54,46 @@ class Program
         Console.WriteLine("\n Your token is: " + token);
 
 
-        while (true)
+
+        Console.WriteLine(" \n\n ");
+        Console.Clear();
+        Console.WriteLine(" 1 <- Repositories");
+        Console.WriteLine(" 2 <- Followers");
+        Console.WriteLine(" 3 <- Followings");
+        Console.WriteLine(" 4 <- Languages");
+        Console.WriteLine(" 5 <- Topics");
+
+        Console.Write("\n Enter: ");
+        Console.ForegroundColor = ConsoleColor.Blue;
+        string choose = Console.ReadLine();
+        Console.ForegroundColor = ConsoleColor.White;
+
+
+
+        string url = $"https://api.github.com/users/{username}";
+
+        if (!string.IsNullOrEmpty(token) && !string.IsNullOrWhiteSpace(username))
         {
-            Console.WriteLine(" \n\n ");
-            Console.Clear();
-            Console.WriteLine(" 1 <- Repositories");
-            Console.WriteLine(" 2 <- Followers");
-            Console.WriteLine(" 3 <- Followings");
-            Console.WriteLine(" 4 <- Languages");
-            Console.WriteLine(" 5 <- Topics");
-            Console.Write("\n Enter: ");
-            Console.ForegroundColor = ConsoleColor.Blue;
-            string choose = Console.ReadLine();
 
-            Console.ForegroundColor = ConsoleColor.White;
-
-            string url = $"https://api.github.com/users/{username}";
-
-            if (!string.IsNullOrEmpty(token) && !string.IsNullOrWhiteSpace(username))
+            using (HttpClient client = new HttpClient())
             {
 
-                using (HttpClient client = new HttpClient())
+
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("AppName", "1.0"));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", token);
+
+                HttpResponseMessage response = await client.GetAsync(url);
+
+                while (true)
                 {
 
 
-                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                    client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("AppName", "1.0"));
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", token);
-
-                    HttpResponseMessage response = await client.GetAsync(url);
 
                     if (response.IsSuccessStatusCode)
                     {
 
-                        if (choose == "1")
+                        if (Mainmenu() == "1")
                         {
 
 
@@ -105,20 +113,102 @@ class Program
 
                             if (response2.IsSuccessStatusCode)
                             {
-                                Console.ForegroundColor = ConsoleColor.Green;
-                                Console.WriteLine("\n Repositories: \n ");
-                                Console.ForegroundColor = ConsoleColor.White;
-                                foreach (var repo in repos)
+
+
+
+                                string request = string.Empty;
+                                int menuSelect = 0;
+
+
+                                //for (int i = 0; i < repos.Count; i++)
+                                //{
+
+
+                                //    Console.WriteLine($"{i}) {repos.ElementAt(i)["full_name"]}");
+
+                                //    if (int.TryParse(openbrowser, out num))
+                                //    {
+                                //        // it's a integer
+                                //    }
+
+
+                                //}
+
+
+
+                                while (true)
                                 {
-                                    Console.WriteLine($"{repo["full_name"]}");
+                                    Console.Clear();
+                                    Console.CursorVisible = false;
 
+                                    Console.ForegroundColor = ConsoleColor.Green;
+                                    Console.WriteLine("\n Repositories: \n ");
+                                    Console.ForegroundColor = ConsoleColor.White;
+
+                                    Console.ForegroundColor = ConsoleColor.Red;
+                                    Console.WriteLine("\n Open the selected section in the browser using the up and down arrows on the keyboard and pressing the enter key. \n");
+                                    Console.ForegroundColor = ConsoleColor.Blue;
+
+
+                                    for (int i = 0; i < repos.Count; i++)
+                                    {
+                                        if (i == menuSelect)
+                                        {
+
+
+                                            Console.ForegroundColor = ConsoleColor.Blue;
+                                            Console.WriteLine($"{i}) {repos.ElementAt(i)["full_name"]}");
+                                            Console.ForegroundColor = ConsoleColor.White;
+
+
+                                        }
+                                        else
+                                        {
+                                            Console.ForegroundColor = ConsoleColor.White;
+                                            Console.WriteLine($"{i}) {repos.ElementAt(i)["full_name"]}");
+                                        }
+
+
+                                    }
+
+                                    var keyPressed = Console.ReadKey();
+
+                                    if (keyPressed.Key == ConsoleKey.DownArrow && menuSelect != repos.Count - 1)
+                                    {
+                                        menuSelect++;
+                                    }
+                                    else if (keyPressed.Key == ConsoleKey.UpArrow && menuSelect >= 1)
+                                    {
+                                        menuSelect--;
+                                    }
+                                    else if (keyPressed.Key == ConsoleKey.Enter)
+                                    {
+
+                                        request = $"https://www.github.com/{repos.ElementAt(menuSelect)["full_name"]}";
+                                        ProcessStartInfo ps = new ProcessStartInfo
+                                        {
+                                            FileName = request,
+                                            UseShellExecute = true
+                                        };
+
+                                        Process.Start(ps);
+
+                                    }
+                                    else if (keyPressed.Key == ConsoleKey.Spacebar)
+                                    {
+                                        Mainmenu();
+
+                                        break;
+                                    }
                                 }
-
                             }
+
+
+
 
                         }
 
-                        if (choose == "2")
+                        if (Mainmenu() == "2")
                         {
                             HttpResponseMessage response3 = await client.GetAsync($"{url}/followers?per_page=1000");
 
@@ -128,21 +218,92 @@ class Program
 
                             if (response3.IsSuccessStatusCode)
                             {
-                                Console.ForegroundColor = ConsoleColor.Green;
-                                Console.WriteLine("\n Followers: \n ");
-                                Console.ForegroundColor = ConsoleColor.White;
 
-                                foreach (var follower in followers)
+
+
+                                string request = string.Empty;
+                                int menuSelect = 0;
+
+
+                                while (true)
                                 {
-                                    Console.WriteLine($"{follower["login"]}  {follower["avatar_url"]}");
+                                    Console.Clear();
+                                    Console.CursorVisible = false;
 
+                                    Console.ForegroundColor = ConsoleColor.Green;
+                                    Console.WriteLine("\n Followers: \n ");
+                                    Console.ForegroundColor = ConsoleColor.White;
+
+                                    Console.ForegroundColor = ConsoleColor.Red;
+                                    Console.WriteLine("\n Open the selected section in the browser using the up and down arrows on the keyboard and pressing the enter key. \n");
+                                    Console.ForegroundColor = ConsoleColor.Blue;
+
+
+                                    for (int i = 0; i < followers.Count; i++)
+                                    {
+
+
+
+                                        if (i == menuSelect)
+                                        {
+
+
+                                            Console.ForegroundColor = ConsoleColor.Blue;
+                                            Console.WriteLine($"{followers.ElementAt(i)["login"]}  {followers.ElementAt(i)["avatar_url"]}");
+
+                                            Console.ForegroundColor = ConsoleColor.White;
+
+
+                                        }
+                                        else
+                                        {
+                                            Console.ForegroundColor = ConsoleColor.White;
+                                            Console.WriteLine($"{followers.ElementAt(i)["login"]}  {followers.ElementAt(i)["avatar_url"]}");
+
+                                        }
+
+
+                                    }
+
+                                    var keyPressed = Console.ReadKey();
+
+                                    if (keyPressed.Key == ConsoleKey.DownArrow && menuSelect != followers.Count - 1)
+                                    {
+                                        menuSelect++;
+                                    }
+                                    else if (keyPressed.Key == ConsoleKey.UpArrow && menuSelect >= 1)
+                                    {
+                                        menuSelect--;
+                                    }
+                                    else if (keyPressed.Key == ConsoleKey.Enter)
+                                    {
+
+                                        request = $"{followers.ElementAt(menuSelect)["avatar_url"]}";
+                                        ProcessStartInfo ps = new ProcessStartInfo
+                                        {
+                                            FileName = request,
+                                            UseShellExecute = true
+                                        };
+
+                                        Process.Start(ps);
+
+                                    }
+                                    else if (keyPressed.Key == ConsoleKey.Spacebar)
+                                    {
+                                        Mainmenu();
+                                        break;
+                                    }
                                 }
+
+
+
+
 
                             }
 
                         }
 
-                        if (choose == "3")
+                        if (Mainmenu() == "3")
                         {
 
                             HttpResponseMessage response4 = await client.GetAsync($"{url}/followers?per_page=1000");
@@ -153,23 +314,87 @@ class Program
 
                             if (response4.IsSuccessStatusCode)
                             {
-                                Console.ForegroundColor = ConsoleColor.Green;
 
-                                Console.WriteLine("\n Followings: \n ");
 
-                                Console.ForegroundColor = ConsoleColor.White;
+                                string request = string.Empty;
+                                int menuSelect = 0;
 
-                                foreach (var following in followings)
+
+                                while (true)
                                 {
-                                    Console.WriteLine($"{following["login"]}  {following["avatar_url"]}");
+                                    Console.Clear();
+                                    Console.CursorVisible = false;
 
+                                    Console.ForegroundColor = ConsoleColor.Green;
+                                    Console.WriteLine("\n Followings: \n ");
+                                    Console.ForegroundColor = ConsoleColor.White;
+
+                                    Console.ForegroundColor = ConsoleColor.Red;
+                                    Console.WriteLine("\n Open the selected section in the browser using the up and down arrows on the keyboard and pressing the enter key. \n");
+                                    Console.ForegroundColor = ConsoleColor.Blue;
+
+
+                                    for (int i = 0; i < followings.Count; i++)
+                                    {
+
+
+
+                                        if (i == menuSelect)
+                                        {
+
+
+                                            Console.ForegroundColor = ConsoleColor.Blue;
+                                            Console.WriteLine($"{followings.ElementAt(i)["login"]}  {followings.ElementAt(i)["avatar_url"]}");
+
+                                            Console.ForegroundColor = ConsoleColor.White;
+
+
+                                        }
+                                        else
+                                        {
+                                            Console.ForegroundColor = ConsoleColor.White;
+                                            Console.WriteLine($"{followings.ElementAt(i)["login"]}  {followings.ElementAt(i)["avatar_url"]}");
+
+                                        }
+
+
+                                    }
+
+                                    var keyPressed = Console.ReadKey();
+
+                                    if (keyPressed.Key == ConsoleKey.DownArrow && menuSelect != followings.Count - 1)
+                                    {
+                                        menuSelect++;
+                                    }
+                                    else if (keyPressed.Key == ConsoleKey.UpArrow && menuSelect >= 1)
+                                    {
+                                        menuSelect--;
+                                    }
+                                    else if (keyPressed.Key == ConsoleKey.Enter)
+                                    {
+
+                                        request = $"{followings.ElementAt(menuSelect)["avatar_url"]}";
+                                        ProcessStartInfo ps = new ProcessStartInfo
+                                        {
+                                            FileName = request,
+                                            UseShellExecute = true
+                                        };
+
+                                        Process.Start(ps);
+
+                                    }
+                                    else if (keyPressed.Key == ConsoleKey.Spacebar)
+                                    {
+                                        Mainmenu();
+                                        break;
+                                    }
                                 }
 
                             }
 
                         }
 
-                        if (choose == "4")
+                        if (Mainmenu() == "4")
                         {
                             var languagerepositoriesUrl = $"{url}/repos?per_page=1000";
                             var languagerepositoriesResponse = await client.GetAsync(languagerepositoriesUrl);
@@ -180,29 +405,59 @@ class Program
                             var languages = new HashSet<JToken>();
 
 
-                            foreach (var repository in languagesjson)
+
+       
+
+                                    foreach (var repository in languagesjson)
+                                {
+
+
+                                    languages.Add(repository["language"]);
+                                }
+
+
+
+                                string request = string.Empty;
+                                int menuSelect = 0;
+
+                            while (true)
                             {
+                                Console.Clear();
+                                Console.CursorVisible = false;
 
-
-                                languages.Add(repository["language"]);
-                            }
-
-                            Console.ForegroundColor = ConsoleColor.Green;
-
-                            Console.WriteLine("\n Languages used by user: \n");
-
-                            Console.ForegroundColor = ConsoleColor.White;
+                                Console.ForegroundColor = ConsoleColor.Green;
+                                Console.WriteLine("\n Languages used by user: \n");
+                                Console.ForegroundColor = ConsoleColor.White;
 
 
 
-                            foreach (var language in languages)
-                            {
-                                Console.WriteLine(language);
+
+
+                                for (int i = 0; i < languages.Count; i++)
+                                {
+
+                                        Console.WriteLine(languages.ElementAt(i));
+
+                                }
+
+
+
+
+
+                                var keyPressed = Console.ReadKey();
+
+          
+                                if (keyPressed.Key == ConsoleKey.Spacebar)
+                                {
+                                    Mainmenu();
+                                    break;
+                                }
+
                             }
 
                         }
 
-                        if (choose == "5")
+                        if (Mainmenu() == "5")
                         {
 
                             List<string> allTopics = new List<string>();
@@ -232,16 +487,84 @@ class Program
                             }
 
 
-                            Console.Clear();
-                            Console.ForegroundColor = ConsoleColor.Green;
-                            Console.WriteLine($"\n Found {allTopics.Count} topics for user: \n");
-                            Console.ForegroundColor = ConsoleColor.White;
 
-                            foreach (var topic in allTopics.Distinct())
+
+
+
+
+
+                            string request = string.Empty;
+                            int menuSelect = 0;
+
+
+                            while (true)
                             {
-                                Console.WriteLine(topic);
-                            }
+                                Console.Clear();
+                                Console.CursorVisible = false;
 
+                                Console.ForegroundColor = ConsoleColor.Green;
+                                Console.WriteLine($"\n Found {allTopics.Count} topics for user: \n");
+                                Console.ForegroundColor = ConsoleColor.White;
+
+                                Console.ForegroundColor = ConsoleColor.Red;
+                                Console.WriteLine("\n Open the selected section in the browser using the up and down arrows on the keyboard and pressing the enter key. \n");
+                                Console.ForegroundColor = ConsoleColor.Blue;
+
+
+                                for (int i = 0; i < allTopics.Count; i++)
+                                {
+
+
+
+                                    if (i == menuSelect)
+                                    {
+
+
+                                        Console.ForegroundColor = ConsoleColor.Blue;
+                                        Console.WriteLine(allTopics.ElementAt(i));
+                                        Console.ForegroundColor = ConsoleColor.White;
+
+
+                                    }
+                                    else
+                                    {
+                                        Console.ForegroundColor = ConsoleColor.White;
+                                        Console.WriteLine(allTopics.ElementAt(i));
+                                    }
+
+
+                                }
+
+                                var keyPressed = Console.ReadKey();
+
+                                if (keyPressed.Key == ConsoleKey.DownArrow && menuSelect != allTopics.Count - 1)
+                                {
+                                    menuSelect++;
+                                }
+                                else if (keyPressed.Key == ConsoleKey.UpArrow && menuSelect >= 1)
+                                {
+                                    menuSelect--;
+                                }
+                                else if (keyPressed.Key == ConsoleKey.Enter)
+                                {
+
+                                    request = $"https://github.com/topics/{allTopics.ElementAt(menuSelect)}";
+
+                                    ProcessStartInfo ps = new ProcessStartInfo
+                                    {
+                                        FileName = request,
+                                        UseShellExecute = true
+                                    };
+
+                                    Process.Start(ps);
+
+                                }
+                                else if (keyPressed.Key == ConsoleKey.Spacebar)
+                                {
+                                    Mainmenu();
+                                    break;
+                                }
+                            }
 
 
                         }
@@ -252,18 +575,39 @@ class Program
                         Console.ForegroundColor = ConsoleColor.Red;
                         Console.WriteLine("\n Error retrieving data from Github API.");
                         Console.ForegroundColor = ConsoleColor.White;
+
+                        break;
                     }
 
-
                 }
-
-                Console.ReadKey();
             }
 
+            Console.ReadKey();
         }
-    }
 
+    }
+    public static string Mainmenu()
+    {
+
+        Console.WriteLine(" \n\n ");
+        Console.Clear();
+        Console.WriteLine(" 1 <- Repositories");
+        Console.WriteLine(" 2 <- Followers");
+        Console.WriteLine(" 3 <- Followings");
+        Console.WriteLine(" 4 <- Languages");
+        Console.WriteLine(" 5 <- Topics");
+
+        Console.Write("\n Enter: ");
+        Console.ForegroundColor = ConsoleColor.Blue;
+        string choose = Console.ReadLine();
+        Console.ForegroundColor = ConsoleColor.White;
+
+        return choose;
+    }
 }
+
+
+
 
 
 
